@@ -1,5 +1,6 @@
 import pygame as pg
 import sys
+from sceneCache import SceneCache
 
 
 class Game:
@@ -14,7 +15,17 @@ class Game:
         self.clock = pg.time.Clock()
         pg.display.set_caption("PyUndertale")
 
-    
+        self.sceneCache = SceneCache(self)
+        self.currentScene = self.sceneCache.overWorld()
+        
+        self.fpsFont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",18)
+
+    def displayFPS(self):
+        fontColor = (255,255,255)
+        fps = self.fpsFont.render(f"{round(self.clock.get_fps())}",True,fontColor)
+        pos = (670,10)
+        self.window.blit(fps,pos)
+
     def run(self):
         while True:
             for event in pg.event.get():
@@ -22,9 +33,11 @@ class Game:
                     pg.quit()
                     sys.exit()
                     
-
             self.window.fill("black")
 
+            self.currentScene.update()
+
+            self.displayFPS()
             pg.display.update()
             self.clock.tick(self.FPS)
                     
