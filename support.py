@@ -31,5 +31,5 @@ def import_folder(path):
 
 
 def loadSprite(imagePath, scale):
-    newImage = pg.transform.scale(pg.image.load(imagePath),scale)
+    newImage = pg.transform.scale(pg.image.load(imagePath),scale).convert_alpha()
     return newImage

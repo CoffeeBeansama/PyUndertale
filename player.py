@@ -1,10 +1,13 @@
 import pygame as pg
 from support import import_folder
+from random import random
 
 class Player(pg.sprite.Sprite):
-    def __init__(self, pos,groups,collisionSprites):
+    def __init__(self, pos,groups,collisionSprites,spawnAreas,enterBattleScene):
         super().__init__(groups)
         self.collisionSprites = collisionSprites
+        self.spawnAreas = spawnAreas
+        self.enterBattleScene = enterBattleScene
 
         self.speed = 2
         self.spritePath = "Sprites/Player/"
@@ -31,6 +34,10 @@ class Player(pg.sprite.Sprite):
             fullPath = self.spritePath + animations
             self.animationStates[animations] = import_folder(fullPath)
 
+    def addSpawnCollisions(self):
+        self.collisionFlags = [False] * len(self.spawnAreas)
+
+    
     def handleMovement(self):
         self.hitbox.x += self.direction.x * self.speed
         self.handleWallCollision("Horizontal")
@@ -82,20 +89,33 @@ class Player(pg.sprite.Sprite):
     def handleInputs(self):
         keys = pg.key.get_pressed()
 
-        if keys[pg.K_w]:
+        if keys[pg.K_w] or keys[pg.K_UP]:
             self.handleVerticalMovement(-1,"Up")
-        elif keys[pg.K_s]:
+        elif keys[pg.K_s] or keys[pg.K_DOWN]:
             self.handleVerticalMovement(1,"Down")
-        elif keys[pg.K_a]:
+        elif keys[pg.K_a] or keys[pg.K_LEFT]:
             self.handleHorizontalMovement(-1,"Left")
-        elif keys[pg.K_d]:
+        elif keys[pg.K_d] or keys[pg.K_RIGHT]:
             self.handleHorizontalMovement(1,"Right")
         else:
             self.idleState()
 
-    
+    def handleSpawnAreaCollision(self):
+        spawnProbability = random()
+        spawnChance = 0.10
+
+        for i,area in enumerate(self.spawnAreas):
+            if area.hitbox.colliderect(self.hitbox) and not self.collisionFlags[i]:
+                if spawnProbability < spawnChance:
+                    self.enterBattleScene()
+                self.collisionFlags[i] = True
+            elif not area.hitbox.colliderect(self.hitbox) and self.collisionFlags[i]:
+                self.collisionFlags[i] = False
+
+
     def update(self):
         
         self.handleInputs()
         self.handleAnimation()
+        self.handleSpawnAreaCollision()
         self.handleMovement()
