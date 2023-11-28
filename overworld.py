@@ -17,7 +17,7 @@ class OverWorld(Scene):
 
         self.player = Player((270,300),self.visibleSprites,self.collisionSprites,self.spawnArea,self.enterBattleScene)
         self.createMap()
-        self.player.addSpawnCollisions()
+      
             
     def createMap(self):
 
@@ -31,6 +31,7 @@ class OverWorld(Scene):
                 for columnIndex, column in enumerate(row):
 
                     if column != "-1":
+                        
                         x = columnIndex * tileSize
                         y = rowIndex * tileSize
 

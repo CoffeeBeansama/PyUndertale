@@ -34,8 +34,6 @@ class Player(pg.sprite.Sprite):
             fullPath = self.spritePath + animations
             self.animationStates[animations] = import_folder(fullPath)
 
-    def addSpawnCollisions(self):
-        self.collisionFlags = [False] * len(self.spawnAreas)
 
     
     def handleMovement(self):
@@ -101,20 +99,18 @@ class Player(pg.sprite.Sprite):
             self.idleState()
 
     def handleSpawnAreaCollision(self):
-        spawnProbability = random()
-        spawnChance = 0.10
-
-        for i,area in enumerate(self.spawnAreas):
-            if area.hitbox.colliderect(self.hitbox) and not self.collisionFlags[i]:
+        for spawnTile in self.spawnAreas:
+            if spawnTile.hitbox.colliderect(self.hitbox) and not spawnTile.playerCollided:
+                spawnProbability = random()
+                spawnChance = 0.15
                 if spawnProbability < spawnChance:
                     self.enterBattleScene()
-                self.collisionFlags[i] = True
-            elif not area.hitbox.colliderect(self.hitbox) and self.collisionFlags[i]:
-                self.collisionFlags[i] = False
+                spawnTile.playerCollided = True 
+            elif not spawnTile.hitbox.colliderect(self.hitbox) and spawnTile.playerCollided:
+                spawnTile.playerCollided = False
 
 
     def update(self):
-        
         self.handleInputs()
         self.handleAnimation()
         self.handleSpawnAreaCollision()
