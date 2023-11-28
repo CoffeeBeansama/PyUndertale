@@ -87,13 +87,13 @@ class Player(pg.sprite.Sprite):
     def handleInputs(self):
         keys = pg.key.get_pressed()
 
-        if keys[pg.K_w] or keys[pg.K_UP]:
+        if keys[pg.K_UP]:
             self.handleVerticalMovement(-1,"Up")
-        elif keys[pg.K_s] or keys[pg.K_DOWN]:
+        elif keys[pg.K_DOWN]:
             self.handleVerticalMovement(1,"Down")
-        elif keys[pg.K_a] or keys[pg.K_LEFT]:
+        elif keys[pg.K_LEFT]:
             self.handleHorizontalMovement(-1,"Left")
-        elif keys[pg.K_d] or keys[pg.K_RIGHT]:
+        elif keys[pg.K_RIGHT]:
             self.handleHorizontalMovement(1,"Right")
         else:
             self.idleState()
@@ -102,7 +102,7 @@ class Player(pg.sprite.Sprite):
         for spawnTile in self.spawnAreas:
             if spawnTile.hitbox.colliderect(self.hitbox) and not spawnTile.playerCollided:
                 spawnProbability = random()
-                spawnChance = 0.15
+                spawnChance = 0.1
                 if spawnProbability < spawnChance:
                     self.enterBattleScene()
                 spawnTile.playerCollided = True 
