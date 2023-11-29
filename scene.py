@@ -6,6 +6,7 @@ class Scene(ABC):
         self.screen = pg.display.get_surface()
         self.sceneCache = sceneCache
         self.game = game
+        self.collisionSprites = pg.sprite.Group()
 
     @abstractmethod
     def update(self): pass

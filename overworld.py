@@ -1,7 +1,7 @@
 import pygame as pg
 from scene import Scene
 from camera import CameraGroup
-from player import Player
+from player import Frisk
 from support import import_csv_layout
 from tile import WallTile,SpawnArea
 from settings import tileSize
@@ -11,11 +11,10 @@ class OverWorld(Scene):
         super().__init__(sceneCache, game)
 
         self.visibleSprites = CameraGroup()
-        self.collisionSprites = pg.sprite.Group()
+        
         self.spawnArea = pg.sprite.Group()
 
-
-        self.player = Player((270,300),self.visibleSprites,self.collisionSprites,self.spawnArea,self.enterBattleScene)
+        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.spawnArea,self.enterBattleScene)
         self.createMap()
       
             
