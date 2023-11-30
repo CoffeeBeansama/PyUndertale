@@ -1,10 +1,10 @@
 import pygame as pg
 from scene import Scene
-from camera import CameraGroup
 from player import Frisk
-from support import import_csv_layout
+from camera import CameraGroup
 from tile import WallTile,SpawnArea
-from settings import tileSize
+from support import import_csv_layout
+from settings import GameData,tileSize
 
 class OverWorld(Scene):
     def __init__(self, sceneCache, game):
@@ -19,7 +19,6 @@ class OverWorld(Scene):
       
             
     def createMap(self):
-
         mapLayouts = {
             "Wall" : import_csv_layout("Map/Wall.csv"),
             "SpawnArea": import_csv_layout("Map/SpawnArea.csv")
@@ -30,7 +29,6 @@ class OverWorld(Scene):
                 for columnIndex, column in enumerate(row):
 
                     if column != "-1":
-                        
                         x = columnIndex * tileSize
                         y = rowIndex * tileSize
 
@@ -42,6 +40,7 @@ class OverWorld(Scene):
 
     
     def enterBattleScene(self):
+        self.game.gameData[GameData.CurrentEnemy] = None
         self.switchScene(self.sceneCache.battle())
 
     def update(self):

@@ -1,4 +1,3 @@
-
 from enum import Enum
 from overworld import OverWorld
 from battle import Battle
@@ -9,7 +8,6 @@ class Scenes(Enum):
     
 class SceneCache:
     def __init__(self,game):
-        
         self.scenes = {
             Scenes.OverWorld : OverWorld(self,game),
             Scenes.Battle : Battle(self,game),

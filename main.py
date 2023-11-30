@@ -1,6 +1,7 @@
 import pygame as pg
 import sys
 from sceneCache import SceneCache
+from settings import GameData
 
 
 class Game:
@@ -15,10 +16,15 @@ class Game:
         self.clock = pg.time.Clock()
         pg.display.set_caption("PyUndertale")
 
+        self.gameData = {
+            GameData.CurrentEnemy : None
+        }
+
         self.sceneCache = SceneCache(self)
         self.currentScene = self.sceneCache.overWorld()
         
         self.fpsFont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",18)
+
 
     def displayFPS(self):
         fontColor = (255,255,255)

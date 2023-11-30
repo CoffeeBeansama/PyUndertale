@@ -2,12 +2,15 @@ import pygame as pg
 from support import import_folder,loadSprite
 from random import random
 from abc import ABC,abstractmethod
+from eventHandler import EventHandler
 
 class Player(ABC,pg.sprite.Sprite):
     def __init__(self, pos,groups,collisionSprites):
         super().__init__(groups)
         self.collisionSprites = collisionSprites
         
+        self.eventHandler = EventHandler()
+
         self.speed = 2
         self.spritePath = "Sprites/Player/"
         self.direction = pg.math.Vector2()
@@ -45,16 +48,20 @@ class Player(ABC,pg.sprite.Sprite):
                         self.hitbox.bottom = sprite.hitbox.top
     
     def handleInputs(self):
-        keys = pg.key.get_pressed()
-
-        if keys[pg.K_UP]:
+        self.eventHandler.handlePlayerInput()
+  
+        if self.eventHandler.pressingUpButton():
             self.handleVerticalMovement(-1,"Up")
-        elif keys[pg.K_DOWN]:
+
+        elif self.eventHandler.pressingDownButton():
             self.handleVerticalMovement(1,"Down")
-        elif keys[pg.K_LEFT]:
+
+        elif self.eventHandler.pressingLeftButton():
             self.handleHorizontalMovement(-1,"Left")
-        elif keys[pg.K_RIGHT]:
+
+        elif self.eventHandler.pressingRightButton():
             self.handleHorizontalMovement(1,"Right")
+            
         else:
             self.idleState()
 
