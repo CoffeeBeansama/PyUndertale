@@ -9,10 +9,14 @@ class Scene(ABC):
         self.collisionSprites = pg.sprite.Group()
 
     @abstractmethod
+    def uponEnterScene(self): pass
+
+    @abstractmethod
     def update(self): pass
 
     def switchScene(self,newScene):
         self.game.currentScene = newScene
+        self.game.currentScene.uponEnterScene()
 
 
         

@@ -11,6 +11,9 @@ class Player(ABC,pg.sprite.Sprite):
         
         self.eventHandler = EventHandler()
 
+        self.maxHP = 20
+        self.currentHP = self.maxHP
+
         self.speed = 2
         self.spritePath = "Sprites/Player/"
         self.direction = pg.math.Vector2()

@@ -38,6 +38,9 @@ class OverWorld(Scene):
                         if style == "SpawnArea":
                             SpawnArea((x,y),[self.visibleSprites,self.spawnArea])
 
+
+    def uponEnterScene(self):
+        self.game.gameData[GameData.CurrentEnemy] = None
     
     def enterBattleScene(self):
         self.game.gameData[GameData.CurrentEnemy] = None

@@ -9,6 +9,7 @@ class EventHandler:
         self.pressingDown = True if keys[pg.K_DOWN] else False
         self.pressingRight = True if keys[pg.K_RIGHT] else False
         self.pressingLeft = True if keys[pg.K_LEFT] else False
+        self.pressingInteract = True if keys[pg.K_x] else False
     
     def pressingUpButton(self):
         return self.pressingUp
@@ -21,3 +22,6 @@ class EventHandler:
     
     def pressingLeftButton(self):
         return self.pressingLeft
+    
+    def pressingInteractButton(self):
+        return self.pressingInteract
