@@ -1,4 +1,5 @@
 import pygame as pg
+from enum import Enum
 from support import *
 from timer import Timer
 from eventHandler import EventHandler
@@ -7,9 +8,18 @@ from pygame import mixer
 
 dialogues = {
     "Papyrus": {
-        1: ["Papyrus",'Well hello there!'],
+        1: 'Well hello there!',
+        2: 'What a good day init?',
     }
 }
+
+
+class LetterData(Enum):
+    Surface = "Letter Surface",
+    X_Position = "X Position",
+    Y_Position = "Y Position",
+    Letter = "Actual Letter",
+    IndexPosition = "Index Position",
 
 
 class DialogueSystem:
@@ -19,61 +29,44 @@ class DialogueSystem:
 
         self.eventHandler = EventHandler()
         
-        self.renderedText = {}
-
-        self.textToMove = []
-
-        self.textStartPos = [200, 200]
-    
         self.font = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",36)
         self.fontColor = (255, 255, 255)
 
-        self.letterSprites = None
         self.currentSpeaker = None
-        self.lastSpace = None
-
-        self.faceSpriteScale = (75,75)
-        self.faceSpritePos = (70,475)
-        self.speakerNameTextPos = (74,562)
-        self.faceFrameIndex = 0
-
         
         self.dialogueIndex = 1
         self.charIndex = 0
 
         self.ticked = False
         self.typingSpeedTimer = Timer(35,self.unTick)
+        self.timer = Timer(200)
 
-        self.xStartText = 190
+
+        self.xStartText = 150
         self.textXPos = self.xStartText
         self.xDistanceBetween = 18
-        self.maximumXTextXBounds = 740
+        self.maximumXTextXBounds = 670
 
-        self.yStartText = 400
+        self.yStartText = 370
         self.textYPos = self.yStartText
-        self.textYOffset = 26
-        self.maximumXTextYBounds = 531
-
-        self.keyPressedCount = 0
-        self.skipKeyPressed = False
-        self.skipTimer = Timer(50,lambda : self.skipKeyPressed == False)
-
-        self.buttonPressedTime = None
+        self.textYOffset = 28
+        self.maximumXTextYBounds = 450
 
         self.lineCut = False
         self.dialogueActive = False
-        
         self.lineFinished = False
-        self.skippedDialogue = False
+
+        self.renderedText = {}
+        self.textToMove = []
+  
 
    
     def startDialogue(self,speaker):
         self.currentSpeaker = speaker
         self.charIndex = 0
         self.dialogueActive = True
-        self.skippedDialogue = False
+       
       
-
     def endDialogue(self):
         self.dialogueIndex = 1
         self.currentSpeaker = None
@@ -81,23 +74,15 @@ class DialogueSystem:
 
 
     def checkPlayerInput(self):
+        self.timer.update()
         self.eventHandler.handlePlayerInput()
-        self.skipTimer.update()
-
+       
         if self.eventHandler.pressingInteractButton():
-            if not self.skipTimer.activated:
+            if not self.timer.activated:
                 if self.lineFinished:
                     self.nextDialogue()
-                else:
-                    self.skippedDialogue = True
-                self.skipTimer.activate()
+                self.timer.activate()
                 
-
-
-    def checkSkipDialogue(self):
-        if not self.skippedDialogue:
-            return
-        self.typingSpeed = 0
 
     def nextDialogue(self):
         self.charIndex = 0
@@ -106,54 +91,62 @@ class DialogueSystem:
         self.textYPos = self.yStartText
         self.renderedText.clear()
         self.lineFinished = False
-        self.typingSpeed = 35
-        self.skippedDialogue = False
+       
 
 
-        
-    def addTextToRender(self, txt):
-        if self.lineFinished : return
-
+    def addTextToRender(self,txt):
         if self.charIndex >= len(txt):
             self.lineFinished = True
             return
         
-        if not self.lineCut:
-            if not self.ticked:
-                self.ticked = True
-                for i in range(len(txt)):
-                    characterSprite = self.font.render(txt[self.charIndex],True,self.fontColor)
-                    currentTxt = txt[self.charIndex]
+        if not self.ticked:
+            letterSurface = self.font.render(txt[self.charIndex],True,self.fontColor)
+            currentTxt = txt[self.charIndex]
 
-                    self.renderedText[f"{currentTxt}{self.charIndex}"] = {
-                            "LetterSprite": characterSprite,
-                            "XPos": self.textXPos,
-                            "YPos": self.textYPos,
-                            "LetterStored": txt[self.charIndex],
-                            "IndexPos": self.charIndex
-                            }
-                    self.textXPos += self.xDistanceBetween
-                    self.charIndex += 1
-                    return
+            self.renderedText[f"{currentTxt}{self.charIndex}"] = {
+                    LetterData.Surface: letterSurface,
+                    LetterData.X_Position : self.textXPos,
+                    LetterData.Y_Position: self.textYPos,
+                    LetterData.Letter: txt[self.charIndex],
+                    LetterData.IndexPosition : self.charIndex
+                    }
+            
+            self.textXPos += self.xDistanceBetween
+            self.charIndex += 1
+            self.ticked = True
+            return
 
+
+    def renderTextBox(self):
+        textBoxColor = (0,0,0)
+        textBoxBackgroundColor = (255,255,255)
+        xPos = 15
+        yPos = 350
+        width = 670
+        height = 140
+        
+        pg.draw.rect(self.screen,textBoxBackgroundColor,(xPos-5,yPos-5,width+10,height+10))
+        pg.draw.rect(self.screen,textBoxColor,(xPos,yPos,width,height))
 
 
     def fixOutOfBoundsText(self):
         self.textXPos = self.xStartText
         self.textYPos += self.textYOffset
+
         for textIndex, text in enumerate(reversed(self.renderedText.values())):
-            if text["LetterStored"] != " ":
+            if text[LetterData.Letter] != " ":
                 self.textToMove.append(text)
             else:
                 reversedInt = self.textToMove[::-1]
                 for index, texts in enumerate(reversedInt):
                     newTextXOffset = self.xStartText + (index * self.xDistanceBetween)
-                    texts["XPos"] = newTextXOffset
-                    texts["YPos"] += self.textYOffset
+                    texts[LetterData.X_Position] = newTextXOffset
+                    texts[LetterData.Y_Position] += self.textYOffset
                     self.textXPos = newTextXOffset + self.xDistanceBetween
                 self.textToMove.clear()
                 self.lineCut = False
                 return
+
 
     def checkTextOutOfBounds(self):
         if self.textYPos <= self.maximumXTextYBounds:
@@ -165,26 +158,29 @@ class DialogueSystem:
             self.textYPos = self.yStartText
             self.renderedText.clear()
 
+
+
     def unTick(self):
         self.ticked = False
+
 
     def display(self):
         self.typingSpeedTimer.update()
         
         self.checkPlayerInput()
 
-        if self.ticked:
-            if not self.typingSpeedTimer.activated:
-                self.typingSpeedTimer.activate()
+        if not self.typingSpeedTimer.activated and self.ticked:
+            self.typingSpeedTimer.activate()
 
         if self.currentSpeaker is not None:
             if self.dialogueIndex <= len(dialogues[self.currentSpeaker]):
-
-                self.checkSkipDialogue()
+                self.renderTextBox()
                 self.checkTextOutOfBounds()
-                self.addTextToRender(dialogues[self.currentSpeaker][self.dialogueIndex][1])
+                self.addTextToRender(dialogues[self.currentSpeaker][self.dialogueIndex])
             else:
                 self.endDialogue()
 
             for text in self.renderedText.values():
-                self.screen.blit(text["LetterSprite"], (text["XPos"], text["YPos"]))
+                self.screen.blit (text[LetterData.Surface], 
+                                 (text[LetterData.X_Position],
+                                 text[LetterData.Y_Position]))

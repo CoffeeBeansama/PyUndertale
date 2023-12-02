@@ -5,15 +5,20 @@ class NPC(pg.sprite.Sprite):
     def __init__(self,group,dialogueSystem):
         super().__init__(group)
 
+        self.interactActed = False
         self.dialogueSystem = dialogueSystem
         self.spritePath = "Sprites/Npc/Overworld/"
 
     
     def interact(self):
-        self.dialogueSystem.startDialogue(self.dialogueID)
+        if not self.interactActed:
+            self.dialogueSystem.startDialogue(self.dialogueID)
+            self.interactActed = True
 
     
-    def disengage(self):pass
+    def disengage(self):
+        if self.interactActed:
+            self.interactActed = False
 
 
 class Papyrus(NPC):

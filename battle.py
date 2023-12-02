@@ -8,14 +8,14 @@ from support import loadSprite
 from eventHandler import EventHandler
 
 class Turn(Enum):
-    PlayerTurn = 1
-    EnemyTurn = 2
+    PlayerTurn = "Player Turn"
+    EnemyTurn = "Enemy Turn"
 
 class ButtonData(Enum):
-     Sprite = 1
-     SpriteSelected = 2
-     Position = 3
-     Event = 4
+     Sprite = "Sprite"
+     SpriteSelected = "Selected Sprite"
+     Position = "Position"
+     Event = "Function Event"
 
 class Battle(Scene):
     

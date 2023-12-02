@@ -125,6 +125,8 @@ class Frisk(Player):
                     if self.eventHandler.pressingInteractButton():
                         npc.interact()
                     self.timer.activate()
+            else:
+                npc.disengage()
 
     def update(self):
         self.timer.update()
