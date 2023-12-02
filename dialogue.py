@@ -9,7 +9,7 @@ from pygame import mixer
 dialogues = {
     "Papyrus": {
         1: 'Well hello there!',
-        2: 'What a good day init?',
+       
     }
 }
 
@@ -23,8 +23,9 @@ class LetterData(Enum):
 
 
 class DialogueSystem:
-    def __init__(self,player):
+    def __init__(self,player,startBattle):
         self.player = player
+        self.startBattle = startBattle
         self.screen = pg.display.get_surface()
 
         self.eventHandler = EventHandler()
@@ -69,6 +70,7 @@ class DialogueSystem:
       
     def endDialogue(self):
         self.dialogueIndex = 1
+        self.startBattle(self.currentSpeaker)
         self.currentSpeaker = None
         self.dialogueActive = False
 
@@ -83,7 +85,6 @@ class DialogueSystem:
                     self.nextDialogue()
                 self.timer.activate()
                 
-
     def nextDialogue(self):
         self.charIndex = 0
         self.dialogueIndex += 1

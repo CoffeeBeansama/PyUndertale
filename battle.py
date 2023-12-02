@@ -40,10 +40,13 @@ class Battle(Scene):
 
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
-        startingPos = (52,425)
+        startingPos = (52,445)
         self.playerSelectionRect = self.playerSelectionSprite.get_rect(topleft=startingPos)
 
         self.currentEnemy = None
+
+        self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
+        self.fontColor = (255, 255, 255)
 
     def createButtons(self):
         spritePath = "Sprites/UI/"
@@ -59,12 +62,15 @@ class Battle(Scene):
         for i,key in enumerate(self.playerButton.keys()):
              self.playerButton[key][ButtonData.Sprite] = loadSprite(f"{spritePath}{key}Button.png",buttonSize)
              self.playerButton[key][ButtonData.SpriteSelected] = loadSprite(f"{spritePath}{key}ButtonSelected.png",buttonSize)
-             self.playerButton[key][ButtonData.Position] = (40+(160*i),400)
+             self.playerButton[key][ButtonData.Position] = (40+(160*i),420)
 
         self.buttons = [i for i in self.playerButton.values()]
         
     def uponEnterScene(self):
+        self.selectionIndex = 0
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
+        
+        
 
     def handleInput(self):
         self.eventHandler.handlePlayerInput()
@@ -99,7 +105,7 @@ class Battle(Scene):
         print("item")
 
     def mercyButton(self):
-        print("mercy")
+        self.switchScene(self.sceneCache.overWorld())
 
 
     def playerTurn(self):
@@ -111,6 +117,31 @@ class Battle(Scene):
 
         self.playerSelectionRect.x = 52+(160*self.selectionIndex)   
         self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
+    
+    def renderPlayerHUD(self):
+        playerName = self.playerHudfont.render(self.player.name,True,self.fontColor)
+        self.screen.blit(playerName,(50,375))
+
+        playerLV = self.playerHudfont.render(f"LV{self.player.levelOfViolence}",True,self.fontColor)
+        self.screen.blit(playerLV,(215,375))
+
+        hpText = self.playerHudfont.render("HP",True,self.fontColor)
+        self.screen.blit(hpText,(290,375))
+
+        xPos = 340
+        yPos = 380
+        width = 100
+        height = 30
+
+        red = (255,0,0)
+        hpBarBackGround = pg.draw.rect(self.screen,red,(xPos,yPos,width,height))
+
+        yellow = (255, 255, 0)
+        playerHPBar = pg.draw.rect(self.screen,yellow,(xPos,yPos,width,height))
+
+        playerHp = self.playerHudfont.render(f"{self.player.currentHP}/{self.player.maxHP}",True,self.fontColor)
+        self.screen.blit(playerHp,(470,375))
+
 
     def enemyTurn(self):
         for sprites in self.visibleSprites:
@@ -120,5 +151,6 @@ class Battle(Scene):
     def update(self):      
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
-    
+
+        self.renderPlayerHUD()
         self.player.update()

@@ -18,17 +18,14 @@ class OverWorld(Scene):
         self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene)
 
 
-        self.dialogueSystem = DialogueSystem(self.player)
+        self.dialogueSystem = DialogueSystem(self.player,self.enterBattleScene)
 
-
-        self.papyrus = Papyrus((300,230),[self.npcSprites,self.visibleSprites],self.dialogueSystem)
-
-        
-
+        self.npcs = {
+            "Papyrus" : Papyrus((300,230),[self.npcSprites,self.visibleSprites],self.dialogueSystem)
+        }
+         
         self.createMap()
-
-      
-            
+   
     def createMap(self):
         mapLayouts = {
             "Wall" : import_csv_layout("Map/Wall.csv"),
@@ -42,18 +39,15 @@ class OverWorld(Scene):
                     if column != "-1":
                         x = columnIndex * tileSize
                         y = rowIndex * tileSize
-
                         if style == "Wall":
                             WallTile((x,y),[self.visibleSprites,self.collisionSprites])
 
                         
-
-
     def uponEnterScene(self):
         self.game.gameData[GameData.CurrentEnemy] = None
-    
-    def enterBattleScene(self):
-        self.game.gameData[GameData.CurrentEnemy] = None
+        
+    def enterBattleScene(self,npc):
+        self.game.gameData[GameData.CurrentEnemy] = self.npcs[npc]
         self.switchScene(self.sceneCache.battle())
 
     def update(self):

@@ -9,7 +9,9 @@ class Player(ABC,pg.sprite.Sprite):
         super().__init__(groups)
         self.collisionSprites = collisionSprites
         
-        self.eventHandler = EventHandler()
+        self.name = "Player"
+
+        self.levelOfViolence = 1
 
         self.maxHP = 20
         self.currentHP = self.maxHP
@@ -17,6 +19,7 @@ class Player(ABC,pg.sprite.Sprite):
         self.speed = 2
         self.spritePath = "Sprites/Player/"
         self.direction = pg.math.Vector2()
+        self.eventHandler = EventHandler()
 
     
     def handleMovement(self):
@@ -71,8 +74,10 @@ class Player(ABC,pg.sprite.Sprite):
     def idleState(self):
         self.direction.x = 0
         self.direction.y = 0
-        if not "_idle" in self.state:
-            self.state = f"{self.state}_idle"
+
+        if hasattr(self,"state"):
+            if not "_idle" in self.state:
+                self.state = f"{self.state}_idle"
     
     @abstractmethod
     def update(self):
