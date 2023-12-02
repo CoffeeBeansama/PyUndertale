@@ -118,7 +118,7 @@ class Frisk(Player):
         self.sprite = animation[int(self.frame_index)].convert_alpha()
         self.rect = self.sprite.get_rect(center=self.hitbox.center)
 
-    def handleSpawnAreaCollision(self):
+    def handleNPCInteraction(self):
         for npc in self.npcSprites:
             if npc.hitbox.colliderect(self.hitbox):
                 if not self.timer.activated:
@@ -130,7 +130,7 @@ class Frisk(Player):
         self.timer.update()
         self.handleInputs()
         self.handleAnimation()
-        self.handleSpawnAreaCollision()
+        self.handleNPCInteraction()
         self.handleMovement()
 
 class PlayerSoul(Player):

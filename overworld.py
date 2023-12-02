@@ -5,6 +5,7 @@ from camera import CameraGroup
 from tile import WallTile,SpawnArea
 from support import import_csv_layout
 from settings import GameData,tileSize
+from dialogue import DialogueSystem,dialogues
 from npc import *
 
 class OverWorld(Scene):
@@ -15,8 +16,15 @@ class OverWorld(Scene):
         self.npcSprites = pg.sprite.Group()
 
         self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene)
-        self.papyrus = Papyrus((300,230),[self.npcSprites,self.visibleSprites],None)
- 
+
+
+        self.dialogueSystem = DialogueSystem(self.player)
+
+
+        self.papyrus = Papyrus((300,230),[self.npcSprites,self.visibleSprites],self.dialogueSystem)
+
+        
+
         self.createMap()
 
       
@@ -50,6 +58,8 @@ class OverWorld(Scene):
 
     def update(self):
         self.player.update()
+        
         self.visibleSprites.custom_draw(self.player)
+        self.dialogueSystem.display()
         
 
