@@ -65,7 +65,6 @@ class Battle(Scene):
         
     def uponEnterScene(self):
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
-        print(self.currentEnemy)
 
     def handleInput(self):
         self.eventHandler.handlePlayerInput()

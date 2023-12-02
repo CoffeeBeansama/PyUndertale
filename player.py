@@ -1,6 +1,6 @@
 import pygame as pg
 from support import import_folder,loadSprite
-from random import random
+from timer import Timer
 from abc import ABC,abstractmethod
 from eventHandler import EventHandler
 
@@ -79,9 +79,9 @@ class Player(ABC,pg.sprite.Sprite):
         pass
 
 class Frisk(Player):
-    def __init__(self, pos, groups, collisionSprites, spawnAreas, enterBattleScene):
+    def __init__(self, pos, groups, collisionSprites, npcs, enterBattleScene):
         super().__init__(pos, groups, collisionSprites)
-        self.spawnAreas = spawnAreas
+        self.npcSprites = npcs
         self.enterBattleScene = enterBattleScene
 
         self.sprite = pg.image.load(f"{self.spritePath}Down/0.png").convert_alpha()
@@ -94,6 +94,8 @@ class Frisk(Player):
         self.walkingAnimationTime = 1 / 8
         
         self.importSprites()
+
+        self.timer = Timer(200)
 
     def importSprites(self):
         self.animationStates = {
@@ -117,17 +119,15 @@ class Frisk(Player):
         self.rect = self.sprite.get_rect(center=self.hitbox.center)
 
     def handleSpawnAreaCollision(self):
-        for spawnTile in self.spawnAreas:
-            if spawnTile.hitbox.colliderect(self.hitbox) and not spawnTile.playerCollided:
-                spawnProbability = random()
-                spawnChance = 0.1
-                if spawnProbability < spawnChance:
-                    self.enterBattleScene()
-                spawnTile.playerCollided = True 
-            elif not spawnTile.hitbox.colliderect(self.hitbox) and spawnTile.playerCollided:
-                spawnTile.playerCollided = False
+        for npc in self.npcSprites:
+            if npc.hitbox.colliderect(self.hitbox):
+                if not self.timer.activated:
+                    if self.eventHandler.pressingInteractButton():
+                        npc.interact()
+                    self.timer.activate()
 
     def update(self):
+        self.timer.update()
         self.handleInputs()
         self.handleAnimation()
         self.handleSpawnAreaCollision()

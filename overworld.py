@@ -5,17 +5,20 @@ from camera import CameraGroup
 from tile import WallTile,SpawnArea
 from support import import_csv_layout
 from settings import GameData,tileSize
+from npc import *
 
 class OverWorld(Scene):
     def __init__(self, sceneCache, game):
         super().__init__(sceneCache, game)
 
         self.visibleSprites = CameraGroup()
-        
-        self.spawnArea = pg.sprite.Group()
+        self.npcSprites = pg.sprite.Group()
 
-        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.spawnArea,self.enterBattleScene)
+        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene)
+        self.papyrus = Papyrus((300,230),[self.npcSprites,self.visibleSprites],None)
+ 
         self.createMap()
+
       
             
     def createMap(self):
@@ -35,8 +38,7 @@ class OverWorld(Scene):
                         if style == "Wall":
                             WallTile((x,y),[self.visibleSprites,self.collisionSprites])
 
-                        if style == "SpawnArea":
-                            SpawnArea((x,y),[self.visibleSprites,self.spawnArea])
+                        
 
 
     def uponEnterScene(self):
