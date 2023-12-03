@@ -36,11 +36,12 @@ class Battle(Scene):
         }
 
         self.selectionIndex = 0
-        self.buttonPressedTimer = Timer(150)
+        self.buttonPressedTimer = Timer(200)
 
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
-        startingPos = (52,445)
+        self.playerSelectionStartXPos = 71
+        startingPos = (self.playerSelectionStartXPos,445)
         self.playerSelectionRect = self.playerSelectionSprite.get_rect(topleft=startingPos)
 
         self.currentEnemy = None
@@ -48,13 +49,18 @@ class Battle(Scene):
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
 
+
+        self.playerTargetSprite = loadSprite("Sprites/UI/playerTarget.png",(546,115))
+        self.playerTargetRect = self.playerTargetSprite.get_rect(topleft=(60,250))
+        self.displayPlayerTarget = False
+
+
     def createButtons(self):
         spritePath = "Sprites/UI/"
         buttonSize = (140,70)
 
         self.playerButton = {
             "Fight": { ButtonData.Event : self.fightButton },
-            "Act": { ButtonData.Event : self.actButton },
             "Item": { ButtonData.Event : self.itemButton },
             "Mercy": { ButtonData.Event : self.mercyButton }
         }
@@ -62,13 +68,17 @@ class Battle(Scene):
         for i,key in enumerate(self.playerButton.keys()):
              self.playerButton[key][ButtonData.Sprite] = loadSprite(f"{spritePath}{key}Button.png",buttonSize)
              self.playerButton[key][ButtonData.SpriteSelected] = loadSprite(f"{spritePath}{key}ButtonSelected.png",buttonSize)
-             self.playerButton[key][ButtonData.Position] = (40+(160*i),420)
+             self.playerButton[key][ButtonData.Position] = (60+(210*i),420)
 
         self.buttons = [i for i in self.playerButton.values()]
         
     def uponEnterScene(self):
         self.selectionIndex = 0
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
+
+        # Preventing from double pressing the fight button
+        if not self.buttonPressedTimer.activated:
+            self.buttonPressedTimer.activate()
         
         
 
@@ -96,11 +106,9 @@ class Battle(Scene):
     
 
     def fightButton(self):
-        print("fight")
+        self.displayPlayerTarget = True
+        
     
-    def actButton(self):
-        print("act")
-
     def itemButton(self):
         print("item")
 
@@ -115,8 +123,10 @@ class Battle(Scene):
                              button[ButtonData.Position])
 
 
-        self.playerSelectionRect.x = 52+(160*self.selectionIndex)   
+        self.playerSelectionRect.x = self.playerSelectionStartXPos+(210*self.selectionIndex)   
         self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
+
+
     
     def renderPlayerHUD(self):
         playerName = self.playerHudfont.render(self.player.name,True,self.fontColor)
@@ -130,14 +140,16 @@ class Battle(Scene):
 
         xPos = 340
         yPos = 380
-        width = 100
+        maxWidth = 100
         height = 30
 
         red = (255,0,0)
-        hpBarBackGround = pg.draw.rect(self.screen,red,(xPos,yPos,width,height))
+        hpBarBackGround = pg.draw.rect(self.screen,red,(xPos,yPos,maxWidth,height))
 
         yellow = (255, 255, 0)
-        playerHPBar = pg.draw.rect(self.screen,yellow,(xPos,yPos,width,height))
+        diff = (maxWidth / self.player.maxHP) * maxWidth
+        playerHPBarWidth = (self.player.currentHP / maxWidth) * diff
+        playerHPBar = pg.draw.rect(self.screen,yellow,(xPos,yPos,playerHPBarWidth,height))
 
         playerHp = self.playerHudfont.render(f"{self.player.currentHP}/{self.player.maxHP}",True,self.fontColor)
         self.screen.blit(playerHp,(470,375))
@@ -151,6 +163,9 @@ class Battle(Scene):
     def update(self):      
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
+
+        if self.displayPlayerTarget:
+            self.screen.blit(self.playerTargetSprite,self.playerTargetRect)
 
         self.renderPlayerHUD()
         self.player.update()

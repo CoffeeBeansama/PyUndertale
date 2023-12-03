@@ -2,7 +2,7 @@ import pygame as pg
 from scene import Scene
 from player import Frisk
 from camera import CameraGroup
-from tile import WallTile,SpawnArea
+from tile import WallTile
 from support import import_csv_layout
 from settings import GameData,tileSize
 from dialogue import DialogueSystem,dialogues

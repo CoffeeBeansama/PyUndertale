@@ -160,7 +160,6 @@ class DialogueSystem:
             self.renderedText.clear()
 
 
-
     def unTick(self):
         self.ticked = False
 
