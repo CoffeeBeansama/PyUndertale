@@ -6,6 +6,7 @@ from settings import GameData
 from player import PlayerSoul
 from support import loadSprite
 from eventHandler import EventHandler
+from playerAttack import PlayerAttack
 
 class Turn(Enum):
     PlayerTurn = "Player Turn"
@@ -48,13 +49,11 @@ class Battle(Scene):
 
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
+        
+        self.fightPressed = False
+        self.playerAttack = PlayerAttack()
 
-
-        self.playerTargetSprite = loadSprite("Sprites/UI/playerTarget.png",(546,115))
-        self.playerTargetRect = self.playerTargetSprite.get_rect(topleft=(60,250))
-        self.displayPlayerTarget = False
-
-
+    
     def createButtons(self):
         spritePath = "Sprites/UI/"
         buttonSize = (140,70)
@@ -72,6 +71,7 @@ class Battle(Scene):
 
         self.buttons = [i for i in self.playerButton.values()]
         
+
     def uponEnterScene(self):
         self.selectionIndex = 0
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
@@ -79,8 +79,7 @@ class Battle(Scene):
         # Preventing from double pressing the fight button
         if not self.buttonPressedTimer.activated:
             self.buttonPressedTimer.activate()
-        
-        
+              
 
     def handleInput(self):
         self.eventHandler.handlePlayerInput()
@@ -106,7 +105,7 @@ class Battle(Scene):
     
 
     def fightButton(self):
-        self.displayPlayerTarget = True
+        self.fightPressed = True
         
     
     def itemButton(self):
@@ -164,8 +163,7 @@ class Battle(Scene):
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
 
-        if self.displayPlayerTarget:
-            self.screen.blit(self.playerTargetSprite,self.playerTargetRect)
-
         self.renderPlayerHUD()
         self.player.update()
+        if self.fightPressed:
+            self.playerAttack.update()
