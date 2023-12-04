@@ -4,7 +4,8 @@ from timer import Timer
 from eventHandler import EventHandler
 
 class PlayerAttack:
-     def __init__(self):
+     def __init__(self,damageEnemy):
+         self.damageEnemy = damageEnemy
          self.screen = pg.display.get_surface()
          self.crossHair = loadSprite("Sprites/Player/playerCrossHair.png",(100,100))
          self.crossHairRect = self.crossHair.get_rect(topleft=(300,70))
@@ -19,9 +20,31 @@ class PlayerAttack:
          self.targetRadius = 45
          self.timer = Timer(200)
          self.eventHandler = EventHandler()
-
-         self.playerShotted = False
          
+         self.start = False
+         self.playerShotted = False
+         self.hits = 0
+         self.shots = 0
+    
+     def hitTheSweetSpot(self):
+         if self.currentAttackRadius <= self.targetRadius:
+            if self.currentAttackRadius >= 3:
+               return True
+            else: return False
+    
+     def startAttack(self):
+         if not self.timer.activated:
+            self.start = True
+            self.timer.activate()
+         
+     
+     def evaluatePlayerDamage(self):
+         if self.shots >= 3:
+            self.damageEnemy()
+            self.hits = 0
+            self.shots = 0
+
+
 
      def handlePlayerInput(self):
          self.timer.update()
@@ -29,24 +52,25 @@ class PlayerAttack:
          
          if self.eventHandler.pressingInteractButton():
             if not self.timer.activated:
-               if self.currentAttackRadius <= self.targetRadius:
-                  if self.currentAttackRadius >= 3:
-                     print("Perfect Shot!")
-                  else:
-                     print("Missed!")
-                  self.playerShotted = True
+               if self.hitTheSweetSpot():
+                  self.hits += 1       
+               
+               self.shots += 1
+               self.playerShotted = True
+               self.evaluatePlayerDamage()
                self.timer.activate()
 
      def update(self):
-         self.handlePlayerInput()
+         if self.start:
+            self.handlePlayerInput()
          
-         if not self.playerShotted:
-            if self.currentAttackRadius > 1:
-               self.currentAttackRadius -= self.attackSpeed
+            if not self.playerShotted:
+                if self.currentAttackRadius > 1:
+                   self.currentAttackRadius -= self.attackSpeed
          
-         pg.draw.circle(self.screen,self.attackColor,
+            pg.draw.circle(self.screen,self.attackColor,
 	                 self.attackPosition,
 	                 self.currentAttackRadius,
 	                 self.attackThickness)
          
-         self.targetCrossHair = self.screen.blit(self.crossHair,self.crossHairRect)
+            self.targetCrossHair = self.screen.blit(self.crossHair,self.crossHairRect)

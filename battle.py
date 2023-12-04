@@ -50,8 +50,8 @@ class Battle(Scene):
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
         
-        self.fightPressed = False
-        self.playerAttack = PlayerAttack()
+        
+        self.playerAttack = PlayerAttack(self.damageEnemy)
 
     
     def createButtons(self):
@@ -105,8 +105,7 @@ class Battle(Scene):
     
 
     def fightButton(self):
-        self.fightPressed = True
-        
+        self.playerAttack.startAttack()
     
     def itemButton(self):
         print("item")
@@ -114,6 +113,8 @@ class Battle(Scene):
     def mercyButton(self):
         self.switchScene(self.sceneCache.overWorld())
 
+    def damageEnemy(self):
+        pass
 
     def playerTurn(self):
         self.handleInput()
@@ -165,5 +166,5 @@ class Battle(Scene):
 
         self.renderPlayerHUD()
         self.player.update()
-        if self.fightPressed:
-            self.playerAttack.update()
+        
+        self.playerAttack.update()
