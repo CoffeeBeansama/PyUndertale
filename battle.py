@@ -25,6 +25,7 @@ class Battle(Scene):
 
         self.visibleSprites = pg.sprite.Group()
         
+
         self.player = PlayerSoul((100,100),self.visibleSprites,self.collisionSprites)
         self.eventHandler = EventHandler()
 
@@ -49,7 +50,6 @@ class Battle(Scene):
 
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
-        
         
         self.playerAttack = PlayerAttack(self.damageEnemy)
 
@@ -105,7 +105,7 @@ class Battle(Scene):
     
 
     def fightButton(self):
-        self.playerAttack.startAttack()
+        self.playerAttack.startPlayerAttack()
     
     def itemButton(self):
         print("item")
@@ -114,7 +114,7 @@ class Battle(Scene):
         self.switchScene(self.sceneCache.overWorld())
 
     def damageEnemy(self):
-        pass
+        print("this")
 
     def playerTurn(self):
         self.handleInput()
@@ -163,8 +163,11 @@ class Battle(Scene):
     def update(self):      
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
+        
+        self.playerAttack.update()
+           
 
         self.renderPlayerHUD()
         self.player.update()
         
-        self.playerAttack.update()
+        
