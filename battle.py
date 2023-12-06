@@ -6,7 +6,7 @@ from settings import GameData
 from player import PlayerSoul
 from support import loadSprite
 from eventHandler import EventHandler
-from playerAttack import PlayerAttack
+
 
 class Turn(Enum):
     PlayerTurn = "Player Turn"
@@ -38,7 +38,7 @@ class Battle(Scene):
         }
 
         self.selectionIndex = 0
-        self.buttonPressedTimer = Timer(200)
+        self.buttonPressedTimer = Timer(100)
 
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
@@ -51,9 +51,19 @@ class Battle(Scene):
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
         
-        self.playerAttack = PlayerAttack(self.damageEnemy)
+        self.drawTargetSprite = False
+        self.targetSpriteSize = (546,115)
+        self.targetSprite = loadSprite(f"Sprites/target.png",self.targetSpriteSize)
+        self.targetSpriteRect = self.targetSprite.get_rect(topleft=(60,25))
+        
 
-    
+        size = (14,128)
+        self.targetChoiceSprite = {
+            "Start" : loadSprite("Sprites/targetChoice.png",size),
+            "Set" : loadSprite("Sprites/targetChoice2.png",size)
+        }
+
+
     def createButtons(self):
         spritePath = "Sprites/UI/"
         buttonSize = (140,70)
@@ -105,7 +115,7 @@ class Battle(Scene):
     
 
     def fightButton(self):
-        self.playerAttack.startPlayerAttack()
+        self.drawTargetSprite = True
     
     def itemButton(self):
         print("item")
@@ -125,6 +135,23 @@ class Battle(Scene):
 
         self.playerSelectionRect.x = self.playerSelectionStartXPos+(210*self.selectionIndex)   
         self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
+
+    
+    def renderTargetSprite(self):
+        if not self.drawTargetSprite: return
+         
+        white = (255,255,255)
+        offset = 5
+        pg.draw.rect(self.screen,white,
+                    (self.targetSpriteRect.x-offset,self.targetSpriteRect.y-offset,
+                    self.targetSpriteSize[0]+(offset*2),self.targetSpriteSize[1]+(offset*2)))
+        
+        black = (0,0,0)
+        pg.draw.rect(self.screen,black,
+                    (self.targetSpriteRect.x,self.targetSpriteRect.y,
+                    self.targetSpriteSize[0],self.targetSpriteSize[1]))
+
+        self.screen.blit(self.targetSprite,self.targetSpriteRect)
 
 
     
@@ -155,6 +182,7 @@ class Battle(Scene):
         self.screen.blit(playerHp,(470,375))
 
 
+
     def enemyTurn(self):
         for sprites in self.visibleSprites:
             self.screen.blit(sprites.sprite,sprites.rect.center)
@@ -163,9 +191,8 @@ class Battle(Scene):
     def update(self):      
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
-        
-        self.playerAttack.update()
-           
+
+        self.renderTargetSprite()
 
         self.renderPlayerHUD()
         self.player.update()

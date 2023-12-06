@@ -12,6 +12,7 @@ class Timer:
         self.startTime = pg.time.get_ticks()
 
     def deactivate(self):
+        
         self.activated = False
         self.startTime = 0
 
