@@ -39,24 +39,33 @@ class Battle(Scene):
 
         self.selectionIndex = 0
         self.buttonPressedTimer = Timer(150)
+               
+        self.currentRender = ""
+        self.renderSelection = {
+            "Target" : self.renderTargetSprite,
+            "Items" : self.renderInventoryItems
+        }
+        
 
+        self.currentEnemy = None
+        
+        # Player UI
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
         self.playerSelectionStartXPos = 71
         startingPos = (self.playerSelectionStartXPos,445)
         self.playerSelectionRect = self.playerSelectionSprite.get_rect(topleft=startingPos)
 
-        self.currentEnemy = None
-
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
         
+        # Target Board
         self.drawTargetSprite = False
         self.targetSpriteSize = (546,115)
         self.targetSprite = loadSprite(f"Sprites/target.png",self.targetSpriteSize)
         self.targetSpriteRect = self.targetSprite.get_rect(topleft=(60,250))
         
-
+        # Target Bar
         size = (14,128)
         self.targetChoiceStartPos = (590,243)
         self.currentTargetPos = 590
@@ -67,14 +76,20 @@ class Battle(Scene):
             "Set" : loadSprite("Sprites/targetChoice2.png",size)
         }
         self.currentTargetChoiceSprite = self.targetChoiceSprite["Start"]
-                
-        
-        self.currentRender = ""
-        self.renderSelection = {
-            "Target" : self.renderTargetSprite,
-            "Items" : self.renderInventoryItems
             
-        }
+        
+        # Slice Sprite
+        sliceSpritePath = "Sprites/Slash/"
+        sliceSpriteSize = (36,120)
+        self.slashSprites = {}    
+        for i in range(0,6):
+           self.slashSprites[i] = loadSprite(f"{sliceSpritePath}{i}.png",sliceSpriteSize)
+        
+        self.frameIndex = 0
+        self.slashPos = (310,50)
+        self.sliceAnimationTime = 1 / 12
+        
+        
 
     def createButtons(self):
         spritePath = "Sprites/UI/"
@@ -99,7 +114,7 @@ class Battle(Scene):
         self.selectionIndex = 0
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
 
-        # Preventing from double pressing the fight button
+        # Preventing from double pressing the fight button when entering scene
         if not self.buttonPressedTimer.activated:
             self.buttonPressedTimer.activate()
               
@@ -142,18 +157,27 @@ class Battle(Scene):
     def mercyButton(self):
         self.switchScene(self.sceneCache.overWorld())
 
-    def damageEnemy(self):
-        print("this")
+    def damageEnemy(self,pos):
+        if pos <= 350 and pos >= 315:
+           print("Perfect!!")
+        elif pos <= 435 and pos >= 316:
+           print("Great Timing!!")
+        elif pos <= 314 and pos >= 235:
+           print("Great Timing!!")
+        else:
+           print("Missed!!")
+
 
     def playerTurn(self):
         self.handleInput()
-        for index,button in enumerate(self.buttons):
-            self.screen.blit(button[ButtonData.Sprite] if index != self.selectionIndex else button[ButtonData.SpriteSelected],
-                             button[ButtonData.Position])
 
+        self.animateSliceAnimation()
 
-        self.playerSelectionRect.x = self.playerSelectionStartXPos+(210*self.selectionIndex)   
-        self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
+        try:
+            renderSelected = self.renderSelection.get(self.currentRender)
+            renderSelected()
+ 
+        except: pass
 
     
     def renderTargetSprite(self):     
@@ -170,8 +194,9 @@ class Battle(Scene):
 
         self.screen.blit(self.targetSprite,self.targetSpriteRect)
         
-        if not self.targetSelected:
-           self.currentTargetPos -= 5
+        if self.currentTargetPos >= 60:
+           if not self.targetSelected:
+              self.currentTargetPos -= 5
 
         self.screen.blit(self.currentTargetChoiceSprite,(self.currentTargetPos,self.targetChoiceStartPos[1]))
     
@@ -210,16 +235,30 @@ class Battle(Scene):
         for sprites in self.visibleSprites:
             self.screen.blit(sprites.sprite,sprites.rect.center)
 
+    def animateSliceAnimation(self):
+        if not self.targetSelected: return
+        self.frameIndex += self.sliceAnimationTime
+
+        if self.frameIndex >= len(self.slashSprites):
+           self.targetSelected = False
+           self.damageEnemy(self.currentTargetPos)
+           self.currentTurn = Turn.EnemyTurn
+           self.frameIndex = 0
+
+        self.screen.blit(self.slashSprites[int(self.frameIndex)],self.slashPos)
+
+        
 
     def update(self):
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
         
-        try:
-            renderSelected = self.renderSelection.get(self.currentRender)
-            renderSelected()
         
-        except: pass
+        for index,button in enumerate(self.buttons):
+            self.screen.blit(button[ButtonData.Sprite] if index != self.selectionIndex else button[ButtonData.SpriteSelected],button[ButtonData.Position])
+
+        self.playerSelectionRect.x = self.playerSelectionStartXPos+(210*self.selectionIndex)
+        self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
 
         self.renderPlayerHUD()
         self.player.update()
