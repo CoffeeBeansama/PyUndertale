@@ -38,7 +38,7 @@ class Battle(Scene):
         }
 
         self.selectionIndex = 0
-        self.buttonPressedTimer = Timer(100)
+        self.buttonPressedTimer = Timer(150)
 
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
@@ -54,15 +54,27 @@ class Battle(Scene):
         self.drawTargetSprite = False
         self.targetSpriteSize = (546,115)
         self.targetSprite = loadSprite(f"Sprites/target.png",self.targetSpriteSize)
-        self.targetSpriteRect = self.targetSprite.get_rect(topleft=(60,25))
+        self.targetSpriteRect = self.targetSprite.get_rect(topleft=(60,250))
         
 
         size = (14,128)
+        self.targetChoiceStartPos = (590,243)
+        self.currentTargetPos = 590
+        self.targetSelected = False
+
         self.targetChoiceSprite = {
             "Start" : loadSprite("Sprites/targetChoice.png",size),
             "Set" : loadSprite("Sprites/targetChoice2.png",size)
         }
-
+        self.currentTargetChoiceSprite = self.targetChoiceSprite["Start"]
+                
+        
+        self.currentRender = ""
+        self.renderSelection = {
+            "Target" : self.renderTargetSprite,
+            "Items" : self.renderInventoryItems
+            
+        }
 
     def createButtons(self):
         spritePath = "Sprites/UI/"
@@ -74,6 +86,7 @@ class Battle(Scene):
             "Mercy": { ButtonData.Event : self.mercyButton }
         }
 
+        
         for i,key in enumerate(self.playerButton.keys()):
              self.playerButton[key][ButtonData.Sprite] = loadSprite(f"{spritePath}{key}Button.png",buttonSize)
              self.playerButton[key][ButtonData.SpriteSelected] = loadSprite(f"{spritePath}{key}ButtonSelected.png",buttonSize)
@@ -101,11 +114,16 @@ class Battle(Scene):
                 self.selectionIndex += 1
             if self.eventHandler.pressingLeftButton():
                 self.selectionIndex -= 1
-                
+
             if self.eventHandler.pressingInteractButton():
                 self.buttons[self.selectionIndex][ButtonData.Event]()
-    
-            self.buttonPressedTimer.activate()
+                
+                if self.currentTargetPos < 580:
+                   self.targetSelected = True
+                   self.currentTargetChoiceSprite = self.targetChoiceSprite["Set"]
+                   
+            self.buttonPressedTimer.activate()    
+
 
         if self.selectionIndex < 0:
              self.selectionIndex = 0
@@ -115,7 +133,8 @@ class Battle(Scene):
     
 
     def fightButton(self):
-        self.drawTargetSprite = True
+        self.currentRender = "Target"
+        
     
     def itemButton(self):
         print("item")
@@ -137,9 +156,7 @@ class Battle(Scene):
         self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
 
     
-    def renderTargetSprite(self):
-        if not self.drawTargetSprite: return
-         
+    def renderTargetSprite(self):     
         white = (255,255,255)
         offset = 5
         pg.draw.rect(self.screen,white,
@@ -152,8 +169,14 @@ class Battle(Scene):
                     self.targetSpriteSize[0],self.targetSpriteSize[1]))
 
         self.screen.blit(self.targetSprite,self.targetSpriteRect)
+        
+        if not self.targetSelected:
+           self.currentTargetPos -= 5
 
-
+        self.screen.blit(self.currentTargetChoiceSprite,(self.currentTargetPos,self.targetChoiceStartPos[1]))
+    
+    def renderInventoryItems(self): 
+        pass
     
     def renderPlayerHUD(self):
         playerName = self.playerHudfont.render(self.player.name,True,self.fontColor)
@@ -188,13 +211,17 @@ class Battle(Scene):
             self.screen.blit(sprites.sprite,sprites.rect.center)
 
 
-    def update(self):      
+    def update(self):
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
-
-        self.renderTargetSprite()
+        
+        try:
+            renderSelected = self.renderSelection.get(self.currentRender)
+            renderSelected()
+        
+        except: pass
 
         self.renderPlayerHUD()
         self.player.update()
-        
-        
+
+
