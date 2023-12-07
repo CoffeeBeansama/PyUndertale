@@ -22,14 +22,12 @@ class Battle(Scene):
     
     def __init__(self, sceneCache, game):
         super().__init__(sceneCache, game)
-
         self.visibleSprites = pg.sprite.Group()
+        self.eventHandler = EventHandler()
         
 
         self.player = PlayerSoul((100,100),self.visibleSprites,self.collisionSprites)
-        self.eventHandler = EventHandler()
-
-        self.createButtons()
+        
 
         self.currentTurn = Turn.PlayerTurn
         self.turns = {
@@ -49,47 +47,42 @@ class Battle(Scene):
 
         self.currentEnemy = None
         
-        # Player UI
+        self.createButtons()
+
+        self.createPlayerHUD()
+        
+        self.createPlayerAttack()
+            
+        self.createSliceAnimation()
+        
+    def createPlayerHUD(self):
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
         self.playerSelectionStartXPos = 71
         startingPos = (self.playerSelectionStartXPos,445)
         self.playerSelectionRect = self.playerSelectionSprite.get_rect(topleft=startingPos)
-
+  
         self.playerHudfont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",38)
         self.fontColor = (255, 255, 255)
-        
+    
+    def createPlayerAttack(self):
         # Target Board
         self.drawTargetSprite = False
         self.targetSpriteSize = (546,115)
         self.targetSprite = loadSprite(f"Sprites/target.png",self.targetSpriteSize)
         self.targetSpriteRect = self.targetSprite.get_rect(topleft=(60,250))
-        
+  
         # Target Bar
         size = (14,128)
         self.targetChoiceStartPos = (590,243)
         self.currentTargetPos = 590
         self.targetSelected = False
-
+  
         self.targetChoiceSprite = {
             "Start" : loadSprite("Sprites/targetChoice.png",size),
             "Set" : loadSprite("Sprites/targetChoice2.png",size)
         }
         self.currentTargetChoiceSprite = self.targetChoiceSprite["Start"]
-            
-        
-        # Slice Sprite
-        sliceSpritePath = "Sprites/Slash/"
-        sliceSpriteSize = (36,120)
-        self.slashSprites = {}    
-        for i in range(0,6):
-           self.slashSprites[i] = loadSprite(f"{sliceSpritePath}{i}.png",sliceSpriteSize)
-        
-        self.frameIndex = 0
-        self.slashPos = (310,50)
-        self.sliceAnimationTime = 1 / 12
-        
-        
 
     def createButtons(self):
         spritePath = "Sprites/UI/"
@@ -101,14 +94,23 @@ class Battle(Scene):
             "Mercy": { ButtonData.Event : self.mercyButton }
         }
 
-        
         for i,key in enumerate(self.playerButton.keys()):
              self.playerButton[key][ButtonData.Sprite] = loadSprite(f"{spritePath}{key}Button.png",buttonSize)
              self.playerButton[key][ButtonData.SpriteSelected] = loadSprite(f"{spritePath}{key}ButtonSelected.png",buttonSize)
              self.playerButton[key][ButtonData.Position] = (60+(210*i),420)
 
         self.buttons = [i for i in self.playerButton.values()]
-        
+    
+    def createSliceAnimation(self):
+        sliceSpritePath = "Sprites/Slash/"
+        sliceSpriteSize = (36,120)
+        self.slashSprites = {}
+        for i in range(0,6):
+            self.slashSprites[i] = loadSprite(f"{sliceSpritePath}{i}.png",sliceSpriteSize)
+  
+        self.frameIndex = 0
+        self.slashPos = (310,50)
+        self.sliceAnimationTime = 1 / 10
 
     def uponEnterScene(self):
         self.selectionIndex = 0
