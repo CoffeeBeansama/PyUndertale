@@ -41,7 +41,8 @@ class Player(ABC,pg.sprite.Sprite):
 
     def handleWallCollision(self, direction):
         for sprite in self.collisionSprites:
-            if sprite.hitbox.colliderect(self.hitbox):
+            if self.mask.overlap(sprite.mask,(sprite.hitbox.x - self.hitbox.x,sprite.hitbox.y - self.hitbox.y)):
+
                 if direction == "Horizontal":
                     if self.direction.x < 0:
                         self.hitbox.left = sprite.hitbox.right
@@ -92,6 +93,8 @@ class Frisk(Player):
         self.sprite = pg.image.load(f"{self.spritePath}Down/0.png").convert_alpha()
         self.rect = self.sprite.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0,0)
+        self.mask = pg.mask.from_surface(self.sprite)
+        
 
         self.state = "Down_idle"
 
@@ -121,6 +124,7 @@ class Frisk(Player):
             self.frame_index = 0
         
         self.sprite = animation[int(self.frame_index)].convert_alpha()
+        self.mask = pg.mask.from_surface(self.sprite)
         self.rect = self.sprite.get_rect(center=self.hitbox.center)
 
     def handleNPCInteraction(self):
@@ -145,9 +149,11 @@ class PlayerSoul(Player):
         super().__init__(pos, groups, collisionSprites)
 
         self.sprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(24,24))
+        print(self.sprite)
         startingPos = (338,220)
         self.rect = self.sprite.get_rect(topleft=startingPos)
         self.hitbox = self.rect.inflate(0,0)
+        self.mask = pg.mask.from_surface(self.sprite)
 
     def update(self):
         self.handleInputs()

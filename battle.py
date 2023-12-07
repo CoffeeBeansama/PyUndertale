@@ -2,6 +2,8 @@ import pygame as pg
 from enum import Enum
 from scene import Scene
 from timer import Timer
+from support import import_csv_layout
+from tile import WallTile
 from settings import GameData
 from player import PlayerSoul
 from support import loadSprite
@@ -23,11 +25,7 @@ class Battle(Scene):
     def __init__(self, sceneCache, game):
         super().__init__(sceneCache, game)
         self.visibleSprites = pg.sprite.Group()
-        self.eventHandler = EventHandler()
-        
-
-        self.player = PlayerSoul((100,100),self.visibleSprites,self.collisionSprites)
-        
+        self.eventHandler = EventHandler()    
 
         self.currentTurn = Turn.PlayerTurn
         self.turns = {
@@ -54,7 +52,12 @@ class Battle(Scene):
         self.createPlayerAttack()
             
         self.createSliceAnimation()
-        
+
+        self.createBorders()
+       
+        self.player = PlayerSoul((100,100),self.visibleSprites,self.collisionSprites)
+
+
     def createPlayerHUD(self):
         self.spritePath = "Sprites/Player/"
         self.playerSelectionSprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(20,20))
@@ -111,11 +114,34 @@ class Battle(Scene):
         self.frameIndex = 0
         self.slashPos = (310,50)
         self.sliceAnimationTime = 1 / 10
+    
+    def createBorders(self):
+        layout = {
+        "border" : import_csv_layout("Map/playerBounds.csv"),
+        "background" : import_csv_layout("Map/background.csv"),
+        }
+        
+        tilesize = 12
+
+        for style,layouts in layout.items():
+            for rowIndex,row in enumerate(layouts):
+                for columnIndex,column in enumerate(row):
+
+                    if column != "-1":
+                       x = columnIndex * tilesize - (tilesize * 2)
+                       y = rowIndex * 12 - (tilesize * 2)
+
+                       if style == "border":
+                          WallTile(loadSprite(f"Sprites/wall.png",(tilesize*2,tilesize*2)),(x,y),[self.visibleSprites,self.collisionSprites])
+
+                       if style == "background":
+                          WallTile(loadSprite(f"Sprites/Background.png",(tilesize*2,tilesize*2)),(x,y),[self.visibleSprites])
+
+        
 
     def uponEnterScene(self):
         self.selectionIndex = 0
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
-
         # Preventing from double pressing the fight button when entering scene
         if not self.buttonPressedTimer.activated:
             self.buttonPressedTimer.activate()
@@ -196,7 +222,8 @@ class Battle(Scene):
 
         self.screen.blit(self.targetSprite,self.targetSpriteRect)
         
-        if self.currentTargetPos >= 60:
+        maximumXPos = 60
+        if self.currentTargetPos >= maximumXPos:
            if not self.targetSelected:
               self.currentTargetPos -= 5
 
@@ -233,9 +260,11 @@ class Battle(Scene):
 
 
 
-    def enemyTurn(self):
+    def enemyTurn(self): 
         for sprites in self.visibleSprites:
             self.screen.blit(sprites.sprite,sprites.rect.center)
+        
+        self.player.update()
 
     def animateSliceAnimation(self):
         if not self.targetSelected: return
@@ -252,17 +281,20 @@ class Battle(Scene):
         
 
     def update(self):
+
+        self.screen.blit(self.currentEnemy.battleSprite,self.currentEnemy.battleSpriteRect)
+            
         getCurrentTurn = self.turns.get(self.currentTurn)
         getCurrentTurn()
         
-        
+
         for index,button in enumerate(self.buttons):
             self.screen.blit(button[ButtonData.Sprite] if index != self.selectionIndex else button[ButtonData.SpriteSelected],button[ButtonData.Position])
 
         self.playerSelectionRect.x = self.playerSelectionStartXPos+(210*self.selectionIndex)
         self.screen.blit(self.playerSelectionSprite,self.playerSelectionRect)
-
+        
         self.renderPlayerHUD()
-        self.player.update()
+    
 
 

@@ -39,8 +39,9 @@ class OverWorld(Scene):
                     if column != "-1":
                         x = columnIndex * tileSize
                         y = rowIndex * tileSize
+                        
                         if style == "Wall":
-                            WallTile((x,y),[self.visibleSprites,self.collisionSprites])
+                           WallTile(loadSprite(f"Sprites/wall.png",(32,32)),(x,y),[self.visibleSprites,self.collisionSprites])
 
                         
     def uponEnterScene(self):

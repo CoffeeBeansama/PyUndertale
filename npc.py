@@ -8,6 +8,7 @@ class NPC(pg.sprite.Sprite):
         self.interactActed = False
         self.dialogueSystem = dialogueSystem
         self.spritePath = "Sprites/Npc/Overworld/"
+        
 
     
     def interact(self):
@@ -30,6 +31,10 @@ class Papyrus(NPC):
         self.sprite = loadSprite(f"{self.spritePath}Papyrus.png",(25,42))
         self.rect = self.sprite.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0,0)
+        
+        self.battleSprite = loadSprite(f"{self.spritePath}PapyrusBattle.png",(154,184))
+        self.battleSprite.set_alpha(240)
+        self.battleSpriteRect = self.battleSprite.get_rect(topleft=(260,30))
 
 
-     
+        
