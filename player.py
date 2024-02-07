@@ -12,9 +12,10 @@ class Player(ABC,pg.sprite.Sprite):
         self.name = "Player"
 
         self.levelOfViolence = 1
-
         self.maxHP = 20
         self.currentHP = self.maxHP
+        
+        self.currentDamage = 5
 
         self.speed = 2
         self.spritePath = "Sprites/Player/"
@@ -38,7 +39,7 @@ class Player(ABC,pg.sprite.Sprite):
         self.direction.x = value
         self.direction.y = 0
         self.state = state
-
+     
     def handleWallCollision(self, direction):
         for sprite in self.collisionSprites:
             if self.mask.overlap(sprite.mask,(sprite.hitbox.x - self.hitbox.x,sprite.hitbox.y - self.hitbox.y)):
@@ -149,12 +150,53 @@ class PlayerSoul(Player):
         super().__init__(pos, groups, collisionSprites)
 
         self.sprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(24,24))
-        print(self.sprite)
         startingPos = (338,220)
         self.rect = self.sprite.get_rect(topleft=startingPos)
         self.hitbox = self.rect.inflate(0,0)
         self.mask = pg.mask.from_surface(self.sprite)
 
+        self.invulnerableState = False
+        self.invulnerableTimer = Timer(2000,self.revertVulnerableState)
+        
+        self.flashTimer = Timer(200)
+        
+        self.spriteAlpha = {
+            1 : 255,
+            -1 : 180
+        }
+        
+        self.currentAlpha = 1 
+
+    def damagePlayer(self,amount):
+        if self.invulnerableState: return
+        
+        self.currentHP -= amount
+        
+        if self.currentHP < 0:
+           self.currentHP = 0
+        
+        if not self.invulnerableTimer.activated:
+           self.invulnerableState = True
+           self.invulnerableTimer.activate()
+
+    def revertVulnerableState(self):
+        self.invulnerableState = False
+        self.currentAlpha = 1
+        self.sprite.set_alpha(self.spriteAlpha[self.currentAlpha])
+    
+    def handleInvulnerableFlashAnimation(self):
+        if not self.invulnerableState: return
+        
+        if not self.flashTimer.activated:
+           self.currentAlpha *= -1
+           self.sprite.set_alpha(self.spriteAlpha[self.currentAlpha])
+           self.flashTimer.activate()
+           
+
     def update(self):
+        self.invulnerableTimer.update()
+        self.flashTimer.update()
+
+        self.handleInvulnerableFlashAnimation()
         self.handleInputs()
         self.handleMovement()

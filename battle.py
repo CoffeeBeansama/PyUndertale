@@ -6,9 +6,10 @@ from support import import_csv_layout
 from tile import WallTile
 from settings import GameData
 from player import PlayerSoul
-from support import loadSprite
+from support import loadSprite,drawBox
 from eventHandler import EventHandler
-
+from attackobj import BoneObject
+import random
 
 class Turn(Enum):
     PlayerTurn = "Player Turn"
@@ -35,16 +36,20 @@ class Battle(Scene):
 
         self.selectionIndex = 0
         self.buttonPressedTimer = Timer(150)
-               
+        
+        self.enemyAttackTimer = Timer(8000,self.onEnemyAttackEnd)
+
         self.currentRender = ""
         self.renderSelection = {
             "Target" : self.renderTargetSprite,
+            "Enemy HP" : self.handleDamageEnemy, 
             "Items" : self.renderInventoryItems
         }
         
-
-        self.currentEnemy = None
         
+        self.currentEnemy = None
+        self.currentEnemyAttack = None 
+
         self.createButtons()
 
         self.createPlayerHUD()
@@ -54,8 +59,23 @@ class Battle(Scene):
         self.createSliceAnimation()
 
         self.createBorders()
-       
+        
+
+        self.initializePlayerHPBar()
+        self.initializeEnemyHPBar()
+
         self.player = PlayerSoul((100,100),self.visibleSprites,self.collisionSprites)
+
+        
+        self.enemyDamageTimer = Timer(2000,self.startEnemyTurn)
+        self.enemyFlashTimer = Timer(400)
+
+        self.currentEnemySpriteAlpha = 1
+
+        self.enemySpriteAlpha = {
+            1 : 255,
+            -1 : 180
+        }
 
 
     def createPlayerHUD(self):
@@ -103,7 +123,23 @@ class Battle(Scene):
              self.playerButton[key][ButtonData.Position] = (60+(210*i),420)
 
         self.buttons = [i for i in self.playerButton.values()]
-    
+
+    def initializePlayerHPBar(self):    
+        self.playerHPBar_XPos = 340
+        self.playerHPBar_YPos = 380
+        self.playerHPBar_maxWidth = 100
+        self.playerHPBar_height = 30
+
+    def initializeEnemyHPBar(self): 
+        self.enemyHPBar_XPos = 210
+        self.enemyHPBar_YPos = 230
+        self.enemyHPBar_maxWidth = 250
+        self.enemyHPBar_maxHeight = 20
+        self.tempEnemyHPBar_Width = 0        
+        
+        self.enemyDamageHUDText = ""
+        self.enemyDamagefont = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",40)
+
     def createSliceAnimation(self):
         sliceSpritePath = "Sprites/Slash/"
         sliceSpriteSize = (36,120)
@@ -137,20 +173,24 @@ class Battle(Scene):
                        if style == "background":
                           WallTile(loadSprite(f"Sprites/Background.png",(tilesize*2,tilesize*2)),(x,y),[self.visibleSprites])
 
-        
 
     def uponEnterScene(self):
+        self.currentRender = ""
         self.selectionIndex = 0
         self.currentEnemy = self.game.gameData[GameData.CurrentEnemy]
+
+        
+        diff = (self.enemyHPBar_maxWidth / self.currentEnemy.maxHP) * self.enemyHPBar_maxWidth
+        self.tempEnemyHPBar_Width = (self.currentEnemy.currentHP / self.enemyHPBar_maxWidth) * diff
+
         # Preventing from double pressing the fight button when entering scene
         if not self.buttonPressedTimer.activated:
             self.buttonPressedTimer.activate()
               
 
     def handleInput(self):
+        if self.currentRender == "Enemy HP": return
         self.eventHandler.handlePlayerInput()
-        self.buttonPressedTimer.update()
-
         if not self.buttonPressedTimer.activated:
 
             if self.eventHandler.pressingRightButton():
@@ -176,49 +216,80 @@ class Battle(Scene):
     
 
     def fightButton(self):
+        self.currentTargetChoiceSprite = self.targetChoiceSprite["Start"]
         self.currentRender = "Target"
         
     
     def itemButton(self):
-        print("item")
+        pass
 
     def mercyButton(self):
-        self.switchScene(self.sceneCache.overWorld())
+        self.currentRender = ""
+        self.selectionIndex = 0
+        self.currentEnemy = None
+        # Preventing from double pressing the fight button when entering scene
+        if not self.buttonPressedTimer.activated:
+            self.switchScene(self.sceneCache.overWorld())
+            self.buttonPressedTimer.activate()
+
 
     def damageEnemy(self,pos):
         if pos <= 350 and pos >= 315:
-           print("Perfect!!")
-        elif pos <= 435 and pos >= 316:
-           print("Great Timing!!")
-        elif pos <= 314 and pos >= 235:
-           print("Great Timing!!")
+           self.enemyDamageHUDText = f"Perfect!"
+           self.currentEnemy.reduceHp(self.player.currentDamage)   
+        elif pos <= 435 and pos >= 316 or pos <= 314 and pos >= 235:   
+           self.enemyDamageHUDText = f"Great!"
+           self.currentEnemy.reduceHp(self.player.currentDamage * .80)   
         else:
-           print("Missed!!")
+           self.enemyDamageHUDText = "Missed!"
+           self.currentEnemy.reduceHp(0)   
 
 
     def playerTurn(self):
-        self.handleInput()
+        self.enemyFlashTimer.update()
+        self.enemyDamageTimer.update()
 
+        self.handleInput()
         self.animateSliceAnimation()
 
-        try:
-            renderSelected = self.renderSelection.get(self.currentRender)
-            renderSelected()
- 
-        except: pass
-
-    
-    def renderTargetSprite(self):     
-        white = (255,255,255)
-        offset = 5
-        pg.draw.rect(self.screen,white,
-                    (self.targetSpriteRect.x-offset,self.targetSpriteRect.y-offset,
-                    self.targetSpriteSize[0]+(offset*2),self.targetSpriteSize[1]+(offset*2)))
         
-        black = (0,0,0)
-        pg.draw.rect(self.screen,black,
-                    (self.targetSpriteRect.x,self.targetSpriteRect.y,
-                    self.targetSpriteSize[0],self.targetSpriteSize[1]))
+        renderSelected = self.renderSelection.get(self.currentRender)
+        if renderSelected:
+           renderSelected()
+        
+    
+    def startEnemyTurn(self):
+        self.currentTurn = Turn.EnemyTurn
+        self.currentEnemy.battleSprite.set_alpha(self.enemySpriteAlpha[1])
+    
+    def drawHPBar(self,x,y,width,maxWidth,height): 
+        red = (255,0, 0)
+        yellow = (255, 255, 0)
+
+        pg.draw.rect(self.screen,red,(x,y,maxWidth,height))
+        return pg.draw.rect(self.screen,yellow,(x,y,width,height))
+
+    def handleDamageEnemy(self):
+
+        diff = (self.enemyHPBar_maxWidth / self.currentEnemy.maxHP) * self.enemyHPBar_maxWidth 
+        enemyHPBarWidth = (self.currentEnemy.currentHP / self.enemyHPBar_maxWidth) * diff
+        if self.tempEnemyHPBar_Width > enemyHPBarWidth:
+           self.tempEnemyHPBar_Width -= 0.90
+
+        enemyHPBar = self.drawHPBar(self.enemyHPBar_XPos,self.enemyHPBar_YPos,enemyHPBarWidth,self.enemyHPBar_maxWidth,self.enemyHPBar_maxHeight) 
+        tempEnemyHPBar = pg.draw.rect(self.screen,(255,255,0),(self.enemyHPBar_XPos,self.enemyHPBar_YPos,self.tempEnemyHPBar_Width,20))
+        
+        playerDamage = self.enemyDamagefont.render(self.enemyDamageHUDText,True,self.fontColor)
+        self.screen.blit(playerDamage,(430,70))
+
+        if not self.enemyFlashTimer.activated:
+           self.currentEnemySpriteAlpha *= -1
+           self.currentEnemy.battleSprite.set_alpha(self.enemySpriteAlpha[self.currentEnemySpriteAlpha])
+           self.enemyFlashTimer.activate()
+    
+    def renderTargetSprite(self):            
+        drawBox(self.screen,self.targetSpriteRect.x,self.targetSpriteRect.y,
+                self.targetSpriteSize[0],self.targetSpriteSize[1])
 
         self.screen.blit(self.targetSprite,self.targetSpriteRect)
         
@@ -242,46 +313,62 @@ class Battle(Scene):
         hpText = self.playerHudfont.render("HP",True,self.fontColor)
         self.screen.blit(hpText,(290,375))
 
-        xPos = 340
-        yPos = 380
-        maxWidth = 100
-        height = 30
-
-        red = (255,0,0)
-        hpBarBackGround = pg.draw.rect(self.screen,red,(xPos,yPos,maxWidth,height))
-
-        yellow = (255, 255, 0)
-        diff = (maxWidth / self.player.maxHP) * maxWidth
-        playerHPBarWidth = (self.player.currentHP / maxWidth) * diff
-        playerHPBar = pg.draw.rect(self.screen,yellow,(xPos,yPos,playerHPBarWidth,height))
+        diff = (self.playerHPBar_maxWidth / self.player.maxHP) * self.playerHPBar_maxWidth
+        playerHPBarWidth = (self.player.currentHP / self.playerHPBar_maxWidth) * diff
+        playerHPBar = self.drawHPBar(self.playerHPBar_XPos,self.playerHPBar_YPos,playerHPBarWidth,
+                                    self.playerHPBar_maxWidth,self.playerHPBar_height)
 
         playerHp = self.playerHudfont.render(f"{self.player.currentHP}/{self.player.maxHP}",True,self.fontColor)
         self.screen.blit(playerHp,(470,375))
 
 
 
-    def enemyTurn(self): 
+    def enemyTurn(self):
+        if not self.enemyAttackTimer.activated:
+           self.currentEnemyAttack = random.choice(list(self.currentEnemy.attack.attacks.values()))
+           self.enemyAttackTimer.activate()
+        
+        for projectile in self.currentEnemy.attack.projectiles:
+            if projectile.obj:
+               if projectile.obj.collidepoint(self.player.rect.center):
+                  self.player.damagePlayer(projectile.damage)
+
+
         for sprites in self.visibleSprites:
             self.screen.blit(sprites.sprite,sprites.rect.center)
         
+        if self.currentEnemyAttack: 
+           self.currentEnemyAttack()
+        
         self.player.update()
+        self.enemyAttackTimer.update()
+
+    def onEnemyAttackEnd(self):
+        self.currentRender = "" 
+        self.currentTargetPos = self.targetChoiceStartPos[0]
+        self.currentEnemy.attack.projectiles.clear()
+        self.currentEnemyAttack = None
+        
+        self.currentTurn = Turn.PlayerTurn
 
     def animateSliceAnimation(self):
         if not self.targetSelected: return
         self.frameIndex += self.sliceAnimationTime
 
         if self.frameIndex >= len(self.slashSprites):
+           if not self.enemyDamageTimer.activated:
+              self.enemyDamageTimer.activate()
+
            self.targetSelected = False
            self.damageEnemy(self.currentTargetPos)
-           self.currentTurn = Turn.EnemyTurn
            self.frameIndex = 0
+           self.currentRender = "Enemy HP"
 
         self.screen.blit(self.slashSprites[int(self.frameIndex)],self.slashPos)
 
         
 
     def update(self):
-
         self.screen.blit(self.currentEnemy.battleSprite,self.currentEnemy.battleSpriteRect)
             
         getCurrentTurn = self.turns.get(self.currentTurn)

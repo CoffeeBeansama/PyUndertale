@@ -48,6 +48,7 @@ class Game:
 
             self.currentScene.update()
 
+            self.sceneCache.battle().buttonPressedTimer.update()
             self.displayFPS()
             pg.display.update()
             self.clock.tick(self.FPS)
