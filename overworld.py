@@ -16,7 +16,9 @@ class OverWorld(Scene):
         self.visibleSprites = CameraGroup()
         self.npcSprites = pg.sprite.Group()
 
-        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene)
+        self.playerInventory = Inventory()
+
+        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene,self.playerInventory)
 
 
         self.dialogueSystem = DialogueSystem(self.player,self.enterBattleScene)
@@ -27,7 +29,6 @@ class OverWorld(Scene):
          
         self.createMap()
    
-        self.playerInventory = Inventory()
 
     def createMap(self):
         mapLayouts = {

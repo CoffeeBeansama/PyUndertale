@@ -84,11 +84,11 @@ class Player(ABC,pg.sprite.Sprite):
         pass
 
 class Frisk(Player):
-    def __init__(self, pos, groups, collisionSprites, npcs, enterBattleScene):
+    def __init__(self, pos, groups, collisionSprites, npcs, enterBattleScene,inventory):
         super().__init__(pos, groups, collisionSprites)
         self.npcSprites = npcs
         self.enterBattleScene = enterBattleScene
-
+        self.inventory = inventory
         self.sprite = pg.image.load(f"{self.spritePath}Down/0.png").convert_alpha()
         self.rect = self.sprite.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0,0)
@@ -137,6 +137,7 @@ class Frisk(Player):
                 npc.disengage()
 
     def update(self):
+        if self.inventory.renderInventory: return
         self.timer.update()
         self.handleInputs()
         self.handleAnimation()
