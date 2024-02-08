@@ -28,7 +28,6 @@ class DialogueSystem:
         self.startBattle = startBattle
         self.screen = pg.display.get_surface()
 
-        self.eventHandler = EventHandler()
         
         self.font = pg.font.Font("Fonts/DeterminationMonoWebRegular-Z5oq.ttf",36)
         self.fontColor = (255, 255, 255)
@@ -77,9 +76,8 @@ class DialogueSystem:
 
     def checkPlayerInput(self):
         self.timer.update()
-        self.eventHandler.handlePlayerInput()
        
-        if self.eventHandler.pressingInteractButton():
+        if EventHandler.pressingInteractButton():
             if not self.timer.activated:
                 if self.lineFinished:
                     self.nextDialogue()

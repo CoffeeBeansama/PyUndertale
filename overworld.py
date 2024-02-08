@@ -7,6 +7,7 @@ from support import import_csv_layout
 from settings import GameData,tileSize
 from dialogue import DialogueSystem,dialogues
 from npc import *
+from inventory import Inventory
 
 class OverWorld(Scene):
     def __init__(self, sceneCache, game):
@@ -26,6 +27,8 @@ class OverWorld(Scene):
          
         self.createMap()
    
+        self.playerInventory = Inventory()
+
     def createMap(self):
         mapLayouts = {
             "Wall" : import_csv_layout("Map/Wall.csv"),
@@ -50,11 +53,13 @@ class OverWorld(Scene):
     def enterBattleScene(self,npc):
         self.game.gameData[GameData.CurrentEnemy] = self.npcs[npc]
         self.switchScene(self.sceneCache.battle())
-
+    
+    
     def update(self):
         self.player.update()
-        
+
         self.visibleSprites.custom_draw(self.player)
         self.dialogueSystem.display()
         
+        self.playerInventory.update()        
 

@@ -20,7 +20,6 @@ class Player(ABC,pg.sprite.Sprite):
         self.speed = 2
         self.spritePath = "Sprites/Player/"
         self.direction = pg.math.Vector2()
-        self.eventHandler = EventHandler()
 
     
     def handleMovement(self):
@@ -56,18 +55,17 @@ class Player(ABC,pg.sprite.Sprite):
                         self.hitbox.bottom = sprite.hitbox.top
     
     def handleInputs(self):
-        self.eventHandler.handlePlayerInput()
   
-        if self.eventHandler.pressingUpButton():
+        if EventHandler.pressingUpButton():
             self.handleVerticalMovement(-1,"Up")
 
-        elif self.eventHandler.pressingDownButton():
+        elif EventHandler.pressingDownButton():
             self.handleVerticalMovement(1,"Down")
 
-        elif self.eventHandler.pressingLeftButton():
+        elif EventHandler.pressingLeftButton():
             self.handleHorizontalMovement(-1,"Left")
 
-        elif self.eventHandler.pressingRightButton():
+        elif EventHandler.pressingRightButton():
             self.handleHorizontalMovement(1,"Right")
             
         else:
@@ -132,7 +130,7 @@ class Frisk(Player):
         for npc in self.npcSprites:
             if npc.hitbox.colliderect(self.hitbox):
                 if not self.timer.activated:
-                    if self.eventHandler.pressingInteractButton():
+                    if EventHandler.pressingInteractButton():
                         npc.interact()
                     self.timer.activate()
             else:

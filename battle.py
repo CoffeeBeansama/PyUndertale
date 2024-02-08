@@ -26,7 +26,6 @@ class Battle(Scene):
     def __init__(self, sceneCache, game):
         super().__init__(sceneCache, game)
         self.visibleSprites = pg.sprite.Group()
-        self.eventHandler = EventHandler()    
 
         self.currentTurn = Turn.PlayerTurn
         self.turns = {
@@ -190,15 +189,14 @@ class Battle(Scene):
 
     def handleInput(self):
         if self.currentRender == "Enemy HP": return
-        self.eventHandler.handlePlayerInput()
         if not self.buttonPressedTimer.activated:
 
-            if self.eventHandler.pressingRightButton():
+            if EventHandler.pressingRightButton():
                 self.selectionIndex += 1
-            if self.eventHandler.pressingLeftButton():
+            if EventHandler.pressingLeftButton():
                 self.selectionIndex -= 1
 
-            if self.eventHandler.pressingInteractButton():
+            if EventHandler.pressingInteractButton():
                 self.buttons[self.selectionIndex][ButtonData.Event]()
                 
                 if self.currentTargetPos < 580:
@@ -361,8 +359,8 @@ class Battle(Scene):
 
            self.targetSelected = False
            self.damageEnemy(self.currentTargetPos)
-           self.frameIndex = 0
            self.currentRender = "Enemy HP"
+           self.frameIndex = 0
 
         self.screen.blit(self.slashSprites[int(self.frameIndex)],self.slashPos)
 

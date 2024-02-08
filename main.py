@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 from sceneCache import SceneCache
 from settings import GameData
-
+from eventHandler import EventHandler
 
 class Game:
     def __init__(self):
@@ -44,6 +44,7 @@ class Game:
                         sys.exit()
                 
                 
+            EventHandler.handlePlayerInput()
             self.window.fill("black")
 
             self.currentScene.update()
