@@ -13,7 +13,6 @@ dialogues = {
     }
 }
 
-
 class LetterData(Enum):
     Surface = "Letter Surface",
     X_Position = "X Position",
@@ -33,7 +32,11 @@ class DialogueSystem:
         self.fontColor = (255, 255, 255)
 
         self.currentSpeaker = None
+        self.speakerFace_XPos = 45
+        self.speakerFace_YPos = 360
         
+        self.speakerName_XPos = 40
+        self.speakerName_YPos = 440
         self.dialogueIndex = 1
         self.charIndex = 0
 
@@ -42,7 +45,7 @@ class DialogueSystem:
         self.timer = Timer(200)
 
 
-        self.xStartText = 150
+        self.xStartText = 180
         self.textXPos = self.xStartText
         self.xDistanceBetween = 18
         self.maximumXTextXBounds = 670
@@ -69,7 +72,7 @@ class DialogueSystem:
       
     def endDialogue(self):
         self.dialogueIndex = 1
-        self.startBattle(self.currentSpeaker)
+        self.startBattle(self.currentSpeaker.dialogueID)
         self.currentSpeaker = None
         self.dialogueActive = False
 
@@ -116,18 +119,6 @@ class DialogueSystem:
             return
 
 
-    def renderTextBox(self):
-        textBoxColor = (0,0,0)
-        textBoxBackgroundColor = (255,255,255)
-        xPos = 15
-        yPos = 350
-        width = 670
-        height = 140
-        
-        pg.draw.rect(self.screen,textBoxBackgroundColor,(xPos-5,yPos-5,width+10,height+10))
-        pg.draw.rect(self.screen,textBoxColor,(xPos,yPos,width,height))
-
-
     def fixOutOfBoundsText(self):
         self.textXPos = self.xStartText
         self.textYPos += self.textYOffset
@@ -161,6 +152,10 @@ class DialogueSystem:
     def unTick(self):
         self.ticked = False
 
+    
+    def renderSpeakerName(self):
+        name = self.font.render(self.currentSpeaker.dialogueID,True,self.fontColor)
+        return self.screen.blit(name,(self.speakerName_XPos,self.speakerName_YPos))
 
     def display(self):
         self.typingSpeedTimer.update()
@@ -171,10 +166,12 @@ class DialogueSystem:
             self.typingSpeedTimer.activate()
 
         if self.currentSpeaker is not None:
-            if self.dialogueIndex <= len(dialogues[self.currentSpeaker]):
-                self.renderTextBox()
+            if self.dialogueIndex <= len(dialogues[self.currentSpeaker.dialogueID]):
+                background = drawBox(self.screen,15,350,670,140)
+                speakerFace = self.screen.blit(self.currentSpeaker.dialogueSprite,(self.speakerFace_XPos,self.speakerFace_YPos))
+                self.renderSpeakerName()
                 self.checkTextOutOfBounds()
-                self.addTextToRender(dialogues[self.currentSpeaker][self.dialogueIndex])
+                self.addTextToRender(dialogues[self.currentSpeaker.dialogueID][self.dialogueIndex])
             else:
                 self.endDialogue()
 
