@@ -27,6 +27,8 @@ class Battle(Scene):
         super().__init__(sceneCache, game)
         self.visibleSprites = pg.sprite.Group()
 
+        self.inventory = game.gameData[GameData.PlayerInventory]
+
         self.currentTurn = Turn.PlayerTurn
         self.turns = {
             Turn.PlayerTurn : self.playerTurn,
@@ -62,8 +64,9 @@ class Battle(Scene):
 
         self.initializePlayerHPBar()
         self.initializeEnemyHPBar()
-
-        self.player = PlayerSoul((100,100),self.visibleSprites,self.collisionSprites)
+        
+        playerPos = (100,100)
+        self.player = PlayerSoul(playerPos,self.visibleSprites,self.collisionSprites,self.inventory)
 
         
         self.enemyDamageTimer = Timer(2000,self.startEnemyTurn)
@@ -189,28 +192,27 @@ class Battle(Scene):
 
     def handleInput(self):
         if self.currentRender == "Enemy HP": return
-        if not self.buttonPressedTimer.activated:
+        if self.buttonPressedTimer.activated: return
+        
+        if self.currentRender != "Items":
+           if EventHandler.pressingRightButton():
+              if self.selectionIndex < len(self.buttons) -1:
+                 self.selectionIndex += 1
+           if EventHandler.pressingLeftButton():
+              if self.selectionIndex > 0:
+                 self.selectionIndex -= 1
 
-            if EventHandler.pressingRightButton():
-                self.selectionIndex += 1
-            if EventHandler.pressingLeftButton():
-                self.selectionIndex -= 1
-
-            if EventHandler.pressingInteractButton():
-                self.buttons[self.selectionIndex][ButtonData.Event]()
-                
-                if self.currentTargetPos < 580:
-                   self.targetSelected = True
-                   self.currentTargetChoiceSprite = self.targetChoiceSprite["Set"]
-                   
-            self.buttonPressedTimer.activate()    
-
-
-        if self.selectionIndex < 0:
-             self.selectionIndex = 0
-
-        if self.selectionIndex > len(self.buttons) -1:
-             self.selectionIndex = int(len(self.buttons)) - 1
+        if EventHandler.pressingInteractButton():
+           self.buttons[self.selectionIndex][ButtonData.Event]()                
+           if self.currentTargetPos < 580:
+              self.targetSelected = True
+              self.currentTargetChoiceSprite = self.targetChoiceSprite["Set"]
+                           
+        if EventHandler.pressingCloseButton():
+           if self.currentRender == "Items":
+              self.currentRender = ""
+              self.inventory.closeBattleInventory()
+        self.buttonPressedTimer.activate()
     
 
     def fightButton(self):
@@ -219,7 +221,8 @@ class Battle(Scene):
         
     
     def itemButton(self):
-        pass
+        self.currentRender = "Items"
+        self.inventory.openBattleInventory()
 
     def mercyButton(self):
         self.currentRender = ""
@@ -299,7 +302,7 @@ class Battle(Scene):
         self.screen.blit(self.currentTargetChoiceSprite,(self.currentTargetPos,self.targetChoiceStartPos[1]))
     
     def renderInventoryItems(self): 
-        pass
+        self.inventory.handleBattleInventory()
     
     def renderPlayerHUD(self):
         playerName = self.playerHudfont.render(self.player.name,True,self.fontColor)

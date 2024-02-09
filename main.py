@@ -3,6 +3,7 @@ import sys
 from sceneCache import SceneCache
 from settings import GameData
 from eventHandler import EventHandler
+from inventory import Inventory
 
 class Game:
     def __init__(self):
@@ -17,7 +18,8 @@ class Game:
         pg.display.set_caption("PyUndertale")
 
         self.gameData = {
-            GameData.CurrentEnemy : None
+            GameData.CurrentEnemy : None,
+            GameData.PlayerInventory : Inventory()
         }
 
         self.sceneCache = SceneCache(self)

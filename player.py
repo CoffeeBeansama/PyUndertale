@@ -87,8 +87,8 @@ class Frisk(Player):
     def __init__(self, pos, groups, collisionSprites, npcs, enterBattleScene,inventory):
         super().__init__(pos, groups, collisionSprites)
         self.npcSprites = npcs
-        self.enterBattleScene = enterBattleScene
         self.inventory = inventory
+        self.enterBattleScene = enterBattleScene
         self.sprite = pg.image.load(f"{self.spritePath}Down/0.png").convert_alpha()
         self.rect = self.sprite.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0,0)
@@ -145,9 +145,9 @@ class Frisk(Player):
         self.handleMovement()
 
 class PlayerSoul(Player):
-    def __init__(self, pos, groups, collisionSprites):
+    def __init__(self, pos, groups, collisionSprites,inventory):
         super().__init__(pos, groups, collisionSprites)
-
+        self.inventory = inventory
         self.sprite = loadSprite(f"{self.spritePath}PlayerSoul.png",(24,24))
         startingPos = (338,220)
         self.rect = self.sprite.get_rect(topleft=startingPos)

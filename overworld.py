@@ -7,7 +7,6 @@ from support import import_csv_layout
 from settings import GameData,tileSize
 from dialogue import DialogueSystem,dialogues
 from npc import *
-from inventory import Inventory
 
 class OverWorld(Scene):
     def __init__(self, sceneCache, game):
@@ -15,10 +14,10 @@ class OverWorld(Scene):
 
         self.visibleSprites = CameraGroup()
         self.npcSprites = pg.sprite.Group()
+        
+        self.inventory = game.gameData[GameData.PlayerInventory]
 
-        self.playerInventory = Inventory()
-
-        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene,self.playerInventory)
+        self.player = Frisk((270,300),self.visibleSprites,self.collisionSprites,self.npcSprites,self.enterBattleScene,self.inventory)
 
 
         self.dialogueSystem = DialogueSystem(self.player,self.enterBattleScene)
@@ -62,5 +61,4 @@ class OverWorld(Scene):
         self.visibleSprites.custom_draw(self.player)
         self.dialogueSystem.display()
         
-        self.playerInventory.update()        
-
+        self.inventory.update()
